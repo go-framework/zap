@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package zap;
+
+// Logger level enum.
+// Level should be reduce 1 than equal zap logger level value.
+enum Level {
+    // DebugLevel logs are typically voluminous, and are usually disabled in
+    // production.
+    Debug = 0;
+    // InfoLevel is the default logging priority.
+    Info = 1;
+    // WarnLevel logs are more important than Info, but don't need individual
+    // human review.
+    Warn = 2;
+    // ErrorLevel logs are high-priority. If an application is running smoothly,
+    // it shouldn't generate any error-level logs.
+    Error = 3;
+    // DPanicLevel logs are particularly important errors. In development the
+    // logger panics after writing the message.
+    DPanic = 4;
+    // PanicLevel logs a message, then panics.
+    Panic = 5;
+    // FatalLevel logs a message, then calls os.Exit(1).
+    Fatal = 6;
+}
+
+// Atomic level message.
+message AtomicLevel {
+    Level level = 1;
+}
+
+// Empty message.
+message Empty {
+}
+
+// Level service.
+service LevelService {
+    // Get logger atomic Level.
+    rpc GetLevel (Empty) returns (AtomicLevel);
+    // Set logger atomic Level.
+    rpc SetLevel (AtomicLevel) returns (Empty);
+}
