@@ -1,0 +1,9 @@
+# zap
+level: debug
+development: true
+console: true
+writes:
+  - name: lumberjack
+    config:
+      filename: test.log
+      maxbackups: 10

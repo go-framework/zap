@@ -1,32 +1,44 @@
 package zap
 
 import (
+	"fmt"
 	"os"
 	"sort"
 	"time"
+	"unsafe"
 
-	"github.com/natefinch/lumberjack"
+	"github.com/json-iterator/go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/go-framework/zap/syncer"
 )
 
-
 // Zap logger config.
-// use lumberjack writing logs to rolling files.
 // Level as AtomicLevel is an atomically changeable, dynamic logging level.
 type Config struct {
-	// lumberjack rotation config.
-	Rotation *lumberjack.Logger `json:"rotation" yaml:"rotation"`
+	// Logger outs.
+	// Writes: lumberjack
+	Writes []syncer.Write `json:"writes" yaml:"writes"`
 	// Logger text level.
 	// level: debug, info, warn, error, dpanic, panic, and fatal.
-	zap.AtomicLevel `json:"level" yaml:"level"`
+	Level zap.AtomicLevel `json:"level" yaml:"level"`
 	// logger development mode.
 	Development bool `json:"development" yaml:"development"`
 	// enable console logger.
 	Console bool `json:"console" yaml:"console"`
 }
 
-// new zap logger.
+// Implement Stringer.
+func (c *Config) String() string {
+	data, err := jsoniter.Marshal(c)
+	if err == nil {
+		return *(*string)(unsafe.Pointer(&data))
+	}
+	return fmt.Sprintf("level: %s development: %t console: %t", c.Level.Level(), c.Development, c.Console)
+}
+
+// New zap logger.
 func (c *Config) NewZapLogger(opts ...zap.Option) *zap.Logger {
 	// zap config.
 	var config zap.Config
@@ -81,22 +93,24 @@ func (c *Config) NewZapLogger(opts ...zap.Option) *zap.Logger {
 	// multiple write syncer.
 	var ws []zapcore.WriteSyncer
 
-	// default is stdout.
-	if c.Console || c.Rotation == nil {
+	// enable stdout.
+	if c.Console {
 		ws = append(ws, os.Stdout)
 	}
 
-	// enable rotation.
-	if c.Rotation != nil {
-		// append rotation syncer.
-		ws = append(ws, zapcore.AddSync(c.Rotation))
+	// enable Writes.
+	if len(c.Writes) != 0 {
+		// append writer.
+		for _, writer := range c.Writes {
+			ws = append(ws, zapcore.AddSync(writer.GetWriter()))
+		}
 	}
 
 	// new zap core.
 	core := zapcore.NewCore(
 		enc,
 		zapcore.NewMultiWriteSyncer(ws...),
-		c.AtomicLevel,
+		c.Level,
 	)
 
 	// new zap logger.

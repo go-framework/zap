@@ -11,12 +11,12 @@ import (
 // Set logger atomic Level.
 func (c *Config) SetLevel(ctx context.Context, level *AtomicLevel) (*Empty, error) {
 	// set level.
-	c.AtomicLevel.SetLevel(zapcore.Level(level.Level - 1))
+	c.Level.SetLevel(zapcore.Level(level.Level - 1))
 	return nil, nil
 }
 
 // Get logger atomic Level.
 func (c *Config) GetLevel(context.Context, *Empty) (*AtomicLevel, error) {
 	// get level.
-	return &AtomicLevel{Level: Level(c.AtomicLevel.Level() + 1)}, nil
+	return &AtomicLevel{Level: Level(c.Level.Level() + 1)}, nil
 }
