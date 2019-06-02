@@ -19,13 +19,13 @@ import (
 type Config struct {
 	// Logger outs.
 	// Writes: lumberjack
-	Writes []syncer.Write `json:"writes" yaml:"writes"`
+	Writes []*syncer.Write `json:"writes" yaml:"writes"`
 	// Logger text level.
 	// level: debug, info, warn, error, dpanic, panic, and fatal.
 	Level zap.AtomicLevel `json:"level" yaml:"level"`
-	// logger development mode.
+	// Logger development mode.
 	Development bool `json:"development" yaml:"development"`
-	// enable console logger.
+	// Enable console logger.
 	Console bool `json:"console" yaml:"console"`
 }
 
@@ -36,6 +36,12 @@ func (c *Config) String() string {
 		return *(*string)(unsafe.Pointer(&data))
 	}
 	return fmt.Sprintf("level: %s development: %t console: %t", c.Level.Level(), c.Development, c.Console)
+}
+
+// Clone.
+func (c *Config) Clone() *Config {
+	config := *c
+	return &config
 }
 
 // New zap logger.
@@ -117,4 +123,9 @@ func (c *Config) NewZapLogger(opts ...zap.Option) *zap.Logger {
 	logger := zap.New(core)
 
 	return logger.WithOptions(opts...)
+}
+
+// Add syncer write.
+func (c *Config) AddSyncerWrite(write *syncer.Write) {
+	c.Writes = append(c.Writes, write)
 }

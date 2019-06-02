@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/json-iterator/go"
 	"github.com/mitchellh/mapstructure"
@@ -61,7 +60,6 @@ func (this *Write) unmarshal(data map[string]interface{}) error {
 
 	// if have config filed then parse it.
 	if config, ok := data["config"]; ok {
-		log.Println(config)
 		err := mapstructure.Decode(config, this.Config)
 		if err != nil {
 			return err

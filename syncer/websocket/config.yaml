@@ -1,0 +1,10 @@
+# zap
+level: debug
+development: true
+console: true
+writes:
+  - name: websocket
+    config:
+      url: ws://127.0.0.1:9008/ws
+      write_wait: 20e+9
+      message_buffer_size: 512
