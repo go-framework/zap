@@ -27,6 +27,8 @@ type Config struct {
 	Development bool `json:"development" yaml:"development"`
 	// Enable console logger.
 	Console bool `json:"console" yaml:"console"`
+	// Logger fields.
+	Fields map[string]interface{} `json:"fields" yaml:"fields"`
 }
 
 // Implement Stringer.
@@ -96,6 +98,20 @@ func (c *Config) NewZapLogger(opts ...zap.Option) *zap.Logger {
 		opts = append(opts, zap.Fields(fs...))
 	}
 
+	// set fields.
+	if len(c.Fields) > 0 {
+		fs := make([]zap.Field, 0, len(c.Fields))
+		keys := make([]string, 0, len(c.Fields))
+		for k := range c.Fields {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			fs = append(fs, zap.Any(k, c.Fields[k]))
+		}
+		opts = append(opts, zap.Fields(fs...))
+	}
+
 	// multiple write syncer.
 	var ws []zapcore.WriteSyncer
 
@@ -126,6 +142,37 @@ func (c *Config) NewZapLogger(opts ...zap.Option) *zap.Logger {
 }
 
 // Add syncer write.
-func (c *Config) AddSyncerWrite(write *syncer.Write) {
+func (c *Config) AddSyncerWrite(write *syncer.Write) *Config {
 	c.Writes = append(c.Writes, write)
+	return c
+}
+
+// Set fields.
+func (c *Config) SetFields(fields map[string]interface{}) *Config {
+	c.Fields = fields
+	return c
+}
+
+// Add fields.
+func (c *Config) AddFields(key string, value interface{}) *Config {
+	if c.Fields == nil {
+		c.Fields = make(map[string]interface{})
+	}
+
+	c.Fields[key] = value
+
+	return c
+}
+
+// Add map fields.
+func (c *Config) AddMapFields(fields map[string]interface{}) *Config {
+	if c.Fields == nil {
+		c.Fields = make(map[string]interface{})
+	}
+
+	for k, v := range fields {
+		c.Fields[k] = v
+	}
+
+	return c
 }
